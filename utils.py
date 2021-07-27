@@ -46,8 +46,8 @@ def write_brn(ft_dict, temp_path):
     return brn
 
 
-def calculate_job(api_key, gml, job_naam, year):
-    endpoint = 'https://connect.aerius.nl/api/5/calculate'
+def calculate_job(api_key, gml, job_naam, year, rekenstof):
+    endpoint = 'https://connect.aerius.nl/api/6/calculate'
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     data = {
         "apiKey": api_key,
@@ -56,12 +56,21 @@ def calculate_job(api_key, gml, job_naam, year):
             "year": year,
             "substances": ["NOX", "NH3"],
             "name": job_naam,
+            "receptorSetName": "",
+            "stacking": True,
             "aggregate": True,
+            "validate": True,
+            "range": 0,
+            "tempProjectYears": 0,
             "permitCalculationRadiusType": "NONE",
-            "researchArea": False,
-            "permitReportType": "DEMAND",
+            "roadOPS": "DEFAULT",
+            "meteoYear": "2005 - 2014",
+            "sendEmail": False,
+            "useReceptorHeight": False,
             "outputOptions": {
-                "sectorOutput": False
+                "resultTypes": ["DEPOSITION"],
+                "sectorOutput": False,
+                "outputType": "GML"
             }
         },
         "calculateDataObjects": [
@@ -69,7 +78,8 @@ def calculate_job(api_key, gml, job_naam, year):
                 "contentType": "TEXT",
                 "dataType": "GML",
                 "data": gml,
-                "researchArea": False
+                "substance": rekenstof,
+                "exspectRcpHeight": False
             }
         ],
         "strict": False
@@ -80,7 +90,7 @@ def calculate_job(api_key, gml, job_naam, year):
 
 
 def generate_api_key(email):
-    endpoint = 'https://connect.aerius.nl/api/5/generateAPIKey'
+    endpoint = 'https://connect.aerius.nl/api/6/generateAPIKey'
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     data = {'email': email}
     print(endpoint, headers, data)
@@ -88,7 +98,7 @@ def generate_api_key(email):
 
 
 def get_job_status(api_key):
-    endpoint = 'https://connect.aerius.nl/api/5/status/jobs'
+    endpoint = 'https://connect.aerius.nl/api/6/status/jobs?'
     headers = {'Accept': 'application/json'}
     params = {'apiKey': api_key}
     
@@ -96,7 +106,7 @@ def get_job_status(api_key):
     return response
 
 def convert_brn_to_gml(brn_in, substance):
-    endpoint = 'https://connect.aerius.nl/api/5/convert'
+    endpoint = 'https://connect.aerius.nl/api/6/convert'
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     data = {
         "dataObject":
@@ -104,11 +114,11 @@ def convert_brn_to_gml(brn_in, substance):
                 "contentType": "TEXT",
                 "dataType": "BRN",
                 "data": brn_in,
-                "substance": substance
+                "substance": substance,
+                "expectRcpHeight": "false"
             }        
-    }
-
-    return (requests.post(endpoint, headers=headers, data=json.dumps(data)))
+        }
+    return requests.post(endpoint, headers=headers, data=json.dumps(data))
 
 
 
